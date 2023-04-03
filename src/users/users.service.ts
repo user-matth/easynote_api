@@ -12,11 +12,16 @@ interface SignupParams {
   role: string;
 }
 
+interface SigninParams {
+  login: string;
+  password: string;
+}
+
 @Injectable()
 export class UsersService {
   constructor(private readonly prismaService: PrismaService) { }
 
-  async create({ login, password, name, surname }: SignupParams) {
+  async signup({ login, password, name, surname }: SignupParams) {
     try {
       const hashedPassword = await bcrypt.hash(password, 10)
       const users = await this.prismaService.user.create({
@@ -28,6 +33,23 @@ export class UsersService {
         },
       })
       return { token: this.generateJWT(users.id, login) };
+    } catch (err) {
+      throw new InternalServerErrorException(err.message)
+    }
+  }
+
+  async signin({ login, password }: { login: string, password: string }) {
+    try {
+      const user = await this.prismaService.user.findUnique({ where: { login } });
+
+      if (!user) throw new HttpException("Usuário não encontrado!", 400);
+
+      const hashedPassword = user.password;
+      const validPassword = await bcrypt.compare(password, hashedPassword)
+
+      if (!validPassword) throw new HttpException("Senha incorreta!", 400);
+
+      return { token: this.generateJWT(user.id, login) }
     } catch (err) {
       throw new InternalServerErrorException(err.message)
     }
@@ -51,8 +73,8 @@ export class UsersService {
 
   private generateJWT(id: number, login: string) {
     return jwt.sign(
-      { id, login }, 
-      `${process.env.JWT_KEY}`, 
+      { id, login },
+      `${process.env.JWT_KEY}`,
       { expiresIn: "1h" }
     )
   }

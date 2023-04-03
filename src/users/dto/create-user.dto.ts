@@ -1,6 +1,6 @@
-import { IsNotEmpty } from "@nestjs/class-validator";
+import { IsString, IsNotEmpty, IsEmail, MinLength, Matches, IsEnum, IsOptional, isString, IsNumber } from "@nestjs/class-validator"
 
-export class CreateUserDto {
+export class SignUpDto {
     @IsNotEmpty()
     login: string
     @IsNotEmpty()
@@ -8,4 +8,11 @@ export class CreateUserDto {
     name: string
     surname: string
     role: string
+}
+
+export class SignInDto {
+    @IsEmail({}, { message: 'E-mail inválido' })
+    login: string;
+    @MinLength(6, { message: 'Senha deve ser maior que seis digitos.' })
+    password: string;
 }
