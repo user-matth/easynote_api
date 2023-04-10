@@ -15,7 +15,14 @@ export class ResponseNoteDto {
     description: string
     status: boolean
     user_id: number
-    constructor(partial: Partial<ResponseNoteDto>){
-        Object.assign(this,partial)
+    blocks: {
+        type: string;
+        version: string;
+        data: {
+            text: string;
+        };
+    }[];
+    constructor(partial: Partial<ResponseNoteDto>) {
+        Object.assign(this, partial)
     }
 }

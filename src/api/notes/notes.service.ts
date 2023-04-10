@@ -7,14 +7,15 @@ interface NoteParams {
   title?: string;
   description?: string;
   status?: boolean;
-  user_id?: number
+  user_id?: number;
+  image?: File;
 }
 
 @Injectable()
 export class NotesService {
   constructor(private prismaService: PrismaService) { }
 
-  async create({ title, description, status, user_id }: NoteParams) {
+  async create({ title, description, status, user_id, image }: NoteParams) {
     try {
       const note = await this.prismaService.note.create({
         data: {
@@ -31,9 +32,13 @@ export class NotesService {
     }
   }
 
-  async findAll() {
+  async findAll(user_id: number) {
     try {
-      const notes = await this.prismaService.note.findMany({})
+      const notes = await this.prismaService.note.findMany({
+        where: {
+          user_id: user_id
+        }
+      })
       if (!notes) throw new NotFoundException()
       return notes.map((notes) => new ResponseNoteDto(notes))
     } catch (error) {
@@ -41,7 +46,7 @@ export class NotesService {
     }
   }
 
-  async findOne( id: number ) {
+  async findOne(id: number) {
     try {
       const note = await this.prismaService.note.findUnique({
         where: {
@@ -55,7 +60,7 @@ export class NotesService {
     }
   }
 
-  async update( id: number, { title, description, status, user_id }: NoteParams ) {
+  async update(id: number, { title, description, status, user_id }: NoteParams) {
     try {
       const note = await this.prismaService.note.findUnique({
         where: {
@@ -67,9 +72,9 @@ export class NotesService {
         where: {
           id
         }, data: {
-          title, 
-          description, 
-          status, 
+          title,
+          description,
+          status,
           user_id
         }
       })
@@ -79,7 +84,7 @@ export class NotesService {
     }
   }
 
-  async remove( id: number ) {
+  async remove(id: number) {
     try {
       const note = await this.prismaService.note.delete({
         where: {

@@ -16,3 +16,12 @@ export class SignInDto {
     @MinLength(6, { message: 'Senha deve ser maior que seis digitos.' })
     password: string;
 }
+
+export class UsersResponse {
+    name: string
+    surname: string
+    role: string
+    constructor(partial: Partial<UsersResponse>) {
+        Object.assign(this, partial)
+    }
+}

@@ -3,6 +3,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import * as bcrypt from "bcryptjs"
 import * as jwt from "jsonwebtoken"
+import { UsersResponse } from './dto/create-user.dto';
 
 interface SignupParams {
   login: string;
@@ -32,7 +33,7 @@ export class UsersService {
           surname
         },
       })
-      return { token: this.generateJWT(users.id, login) };
+      return { token: this.generateJWT(users.id, users.name, login) };
     } catch (err) {
       throw new InternalServerErrorException(err.message)
     }
@@ -49,14 +50,20 @@ export class UsersService {
 
       if (!validPassword) throw new HttpException("Senha incorreta!", 400);
 
-      return { token: this.generateJWT(user.id, login) }
+      return { token: this.generateJWT(user.id, user.name, login) }
     } catch (err) {
       throw new InternalServerErrorException(err.message)
     }
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll() {
+    try {
+      const users = await this.prismaService.user.findMany({})
+      if (!users) throw new HttpException("Usuário não encontrado!", 400);
+      return users.map((users) => new UsersResponse(users))
+    } catch (err) {
+      throw new InternalServerErrorException(err.message)
+    }
   }
 
   findOne(id: number) {
@@ -71,11 +78,11 @@ export class UsersService {
     return `This action removes a #${id} user`;
   }
 
-  private generateJWT(id: number, login: string) {
+  private generateJWT(id: number, name: string, login: string) {
     return jwt.sign(
-      { id, login },
+      { id, name, login },
       `${process.env.JWT_KEY}`,
-      { expiresIn: "1h" }
+      { expiresIn: "3h" }
     )
   }
 
